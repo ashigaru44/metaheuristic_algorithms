@@ -34,7 +34,7 @@ func check(e error) {
 	}
 }
 
-func GenerateProblem(min int, max int, size int) *Problem {
+func GenerateProblem(size int, min int, max int) *Problem {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	var dim int
 	if min == 0 && max == 0 {
@@ -42,7 +42,7 @@ func GenerateProblem(min int, max int, size int) *Problem {
 	} else {
 		dim = r.Int()%(max-min) + min
 	}
-	nodes := make([][2]int, dim, 2)
+	nodes := make([][2]int, dim)
 
 	for i := 0; i < dim; i++ {
 		nodes[i][0] = r.Int()%(2*size) - size
@@ -51,7 +51,7 @@ func GenerateProblem(min int, max int, size int) *Problem {
 
 	fmt.Println(dim)
 
-	var problem = Problem{dim: dim, nodes: nodes}
+	var problem = Problem{name: "generated", dim: dim, nodes: nodes}
 	return &problem
 }
 
@@ -97,7 +97,7 @@ func InitProblem(path string) *Problem {
 		}
 	}
 
-	problem.PrintProblem()
+
 	file.Close()
-	return nil
+	return &problem
 }
