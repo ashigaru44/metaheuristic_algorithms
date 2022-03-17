@@ -3,6 +3,7 @@ package problem
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -79,16 +80,13 @@ func InitProblem(path string) *Problem {
 			if strings.Contains(text, "NAME") {
 				splitted := strings.Split(text, " ")
 				problem.name = splitted[len(splitted)-1]
-				fmt.Println("name: " + problem.name)
 			} else if strings.Contains(text, "DIMENSION") {
 				splitted := strings.Split(text, " ")
 				problem.dim, err = strconv.Atoi(splitted[len(splitted)-1])
 				check(err)
-				fmt.Println(problem.dim)
 			}
 		} else {
 			splitted := strings.Split(text, " ")
-			fmt.Println(splitted)
 			x, err := strconv.ParseFloat(splitted[1], 32)
 			check(err)
 			y, err := strconv.ParseFloat(splitted[2], 32)
@@ -97,7 +95,25 @@ func InitProblem(path string) *Problem {
 		}
 	}
 
-
+	problem.PrintProblem()
+	problem.adj_matrix = *problem.adjacency_matrix()
+	fmt.Println(problem.adj_matrix)
 	file.Close()
 	return &problem
+}
+
+func (p Problem) adjacency_matrix() *[][]int {
+	adj_matrix := make([][]int, p.dim)
+	for i := range adj_matrix {
+		adj_matrix[i] = make([]int, p.dim)
+	}
+
+	for i := range adj_matrix {
+		for j := range adj_matrix[i] {
+			xd := p.nodes[i][0] - p.nodes[j][0]
+			yd := p.nodes[i][1] - p.nodes[j][1]
+			adj_matrix[i][j] = int(math.Sqrt(float64(xd*xd + yd*yd)))
+		}
+	}
+	return &adj_matrix
 }
