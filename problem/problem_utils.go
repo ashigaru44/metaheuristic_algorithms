@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -23,9 +24,9 @@ type Problem struct {
 
 func (p Problem) PrintProblem() {
 	fmt.Printf("\nName: %s", p.name)
-	fmt.Printf("\nDimension: %v", p.dim)
+	fmt.Printf("\nDimension: %v\nNodes:\n", p.dim)
 	for i, val := range p.nodes {
-		fmt.Printf("\n%v.\t%v", i, val)
+		fmt.Printf("%v.\t%v\n", i, val)
 	}
 }
 
@@ -116,4 +117,25 @@ func (p Problem) adjacency_matrix() *[][]int {
 		}
 	}
 	return &adj_matrix
+}
+
+func (p Problem) SaveProblemToFile() string {
+	file_path := "\\data\\problem_data.txt"
+	f, err := os.Create("." + file_path)
+	check(err)
+
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+	fmt.Print("len: ")
+	fmt.Println(len(p.nodes))
+	for i := range p.nodes {
+		_, err := w.WriteString(fmt.Sprintln(p.nodes[i]))
+		check(err)
+	}
+	w.Flush()
+	ex, err := os.Executable()
+	check(err)
+	return filepath.Dir(ex) + file_path
+	// return "C:\\Users\\mielcare\\Documents\\repos\\metaheuristic_algorithms\\data\\problem_data.txt"
 }
