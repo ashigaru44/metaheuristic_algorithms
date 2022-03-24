@@ -35,8 +35,6 @@ def plotting_problem(nodes):
     plt.ylabel('Y')
     plt.show()
 
-# TBD
-
 
 def plotting_problem_with_solution(nodes, path=None):
     color_index = 0

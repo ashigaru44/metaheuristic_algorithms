@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"meta-heur/tsp/problem"
 	"os/exec"
+
 	//"time"
 	"sort"
 )
@@ -20,7 +21,7 @@ func main() {
 	// fmt.Println(saved_problem_path)
 
 	// pr.PrintProblem()
-  // PATH_VISUALIZATION
+	// PATH_VISUALIZATION
 	path, distance := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
 	p1.Path = *path
 	saved_problem_path := p1.SaveProblemToFile()
@@ -30,8 +31,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-  // END_OF_PATH_VISUALIZATION
-  path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	// END_OF_PATH_VISUALIZATION
+	path, _ = problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
 	sort.Ints(*path)
 	//fmt.Println("Distance = ", distance)
 	fmt.Println("Path:", *path)
