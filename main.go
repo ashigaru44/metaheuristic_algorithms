@@ -4,7 +4,7 @@ import (
 	//"math/rand"
 	"fmt"
 	"meta-heur/tsp/problem"
-	// "os/exec"
+	"os/exec"
 	//"time"
 )
 
@@ -16,14 +16,16 @@ func main() {
 	p1 := problem.InitProblem(problem_path)
 	// p1.PrintProblem()
 	// pr := problem.GenerateProblem(10)
-	// saved_problem_path := p1.SaveProblemToFile()
 	// fmt.Println(saved_problem_path)
-	// err := exec.Command("python", "./visualize.py", saved_problem_path).Run()
-	// if err != nil {
-	// panic(err)
-	// }
+
 	// pr.PrintProblem()
 	path, distance := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	p1.Path = *path
+	saved_problem_path := p1.SaveProblemToFile()
 	fmt.Println("Path:", *path)
 	fmt.Println("Distance = ", distance)
+	err := exec.Command("python", "./visualize.py", saved_problem_path).Run()
+	if err != nil {
+		panic(err)
+	}
 }
