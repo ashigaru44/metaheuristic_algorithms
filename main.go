@@ -6,6 +6,7 @@ import (
 	"meta-heur/tsp/problem"
 	// "os/exec"
 	//"time"
+	"sort"
 )
 
 //var r rand.Rand
@@ -23,7 +24,12 @@ func main() {
 	// panic(err)
 	// }
 	// pr.PrintProblem()
-	path, distance := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	sort.Ints(*path)
+	//fmt.Println("Distance = ", distance)
 	fmt.Println("Path:", *path)
-	fmt.Println("Distance = ", distance)
+	fmt.Println("Distance = ", p1.EvaluateSolution2(path))
+
+	problem.Opt2(*p1, p1.Adj_matrix, path)
+
 }
