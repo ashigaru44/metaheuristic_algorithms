@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os/exec"
 )
 
 type Problem struct {
@@ -162,4 +163,15 @@ func (p Problem) SaveProblemToFile() string {
 	check(err)
 	return filepath.Dir(ex) + file_path
 	// return "C:\\Users\\mielcare\\Documents\\repos\\metaheuristic_algorithms\\data\\problem_data.txt"
+}
+
+func ShowGraph(p *Problem, path *[]int) {
+	p.Path = *path
+	saved_problem_path := p.SaveProblemToFile()
+	fmt.Println("Path:", *path)
+	fmt.Println("Distance = ", p.EvaluateSolution2(path))
+	err := exec.Command("python", "./visualize.py", saved_problem_path).Run()
+	if err != nil {
+		panic(err)
+	}
 }

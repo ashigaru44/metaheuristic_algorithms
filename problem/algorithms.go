@@ -29,6 +29,19 @@ func Random(p Problem) (*[]int, int) {
 	return &result_path, distance
 }
 
+func Random_k(p Problem, k int) (*[]int, int) {
+	var best_route *[]int
+	for i := 0; i < k; i++ {
+		new_route, _ := Random(p)
+		if best_route == nil || p.EvaluateSolution2(new_route) < p.EvaluateSolution2(best_route) {
+			best_route = new_route
+		}
+	}
+	fmt.Println("Path:", *best_route)
+	fmt.Println("Distance = ", p.EvaluateSolution2(best_route))
+	return best_route, p.EvaluateSolution2(best_route)
+}
+
 func initTempAdjMatrix(adj_matrix [][]int, size int) [][]int {
 	tmp_adj_matrix := make([][]int, size)
 
@@ -58,11 +71,6 @@ func opt2Swap(solution *[]int, a int, b int) (*[]int) {
 		new_route[i] = (*solution)[i]
 	}
 
-	//fmt.Println("previous path: ", *solution)
-	//fmt.Println("Current path: ", new_route)
-	//fmt.Println("")
-
-
 	return &new_route
 }
 
@@ -73,17 +81,48 @@ func opt2Rec(p Problem, adj_matrix [][]int, solution *[]int, best_distance int) 
 			//fmt.Println("Current path: ", *new_route)
 
 			var new_distance int = p.EvaluateSolution2(new_route)
-			//fmt.Println("new_distance: ", new_distance)
-			//fmt.Println("new_distance: ", best_distance)
 			if new_distance < best_distance {
 				fmt.Println("new_distance: ", new_distance)
-				//solution = new_route
-				//best_distance = new_distance
 				return opt2Rec(p, adj_matrix, new_route, new_distance)
 			}
 		}
 	}
 	return solution, best_distance
+}
+
+func opt2_PickBestRec(p Problem, adj_matrix [][]int, solution *[]int, best_distance int) (*[]int, int) {
+	var best_new_distance int = math.MaxInt32
+	var best_new_route*[] int
+	for i := 0; i < p.dim - 1; i++ {
+		for j := i + 1; j < p.dim; j++ {
+			var new_route*[] int = opt2Swap(solution, i, j)
+
+			var new_distance = p.EvaluateSolution2(new_route)
+			if new_distance < best_distance {
+				best_new_distance = new_distance
+				best_new_route = new_route
+
+			}
+		}
+	}
+	if best_new_distance < best_distance {
+		fmt.Println("best_new_distance: ", best_new_distance)
+		return opt2_PickBestRec(p, adj_matrix, best_new_route, best_new_distance)
+	}
+	return solution, best_distance
+}
+
+
+func Opt2_PickBest(p Problem, adj_matrix [][]int, solution *[]int) (*[]int, int) {
+	//var best_path *[]int
+	fmt.Println("Opt2_PickBest")
+	var distance = p.EvaluateSolution2(solution)
+	var new_route, new_distance = opt2_PickBestRec(p, adj_matrix, solution, distance)
+	fmt.Println("Old distance = ", distance)
+	fmt.Println("New distance = ", new_distance)
+	fmt.Println("Old path:", *solution)
+	fmt.Println("New path:", *new_route)
+	return new_route, new_distance
 }
 
 func Opt2(p Problem, adj_matrix [][]int, solution *[]int) (*[]int, int) {

@@ -4,10 +4,9 @@ import (
 	//"math/rand"
 	"fmt"
 	"meta-heur/tsp/problem"
-	"os/exec"
 
 	//"time"
-	"sort"
+	//"sort"
 )
 
 //var r rand.Rand
@@ -21,22 +20,27 @@ func main() {
 	// fmt.Println(saved_problem_path)
 
 	// pr.PrintProblem()
+
 	// PATH_VISUALIZATION
-	path, distance := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
-	p1.Path = *path
-	saved_problem_path := p1.SaveProblemToFile()
-	fmt.Println("Path:", *path)
-	fmt.Println("Distance = ", distance)
-	err := exec.Command("python", "./visualize.py", saved_problem_path).Run()
-	if err != nil {
-		panic(err)
-	}
+
+	path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	problem.ShowGraph(p1, path)
 	// END_OF_PATH_VISUALIZATION
-	path, _ = problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
-	sort.Ints(*path)
+
+
+	//path, _ = problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	//sort.Ints(*path)
 	//fmt.Println("Distance = ", distance)
 	fmt.Println("Path:", *path)
 	fmt.Println("Distance = ", p1.EvaluateSolution2(path))
 
-	problem.Opt2(*p1, p1.Adj_matrix, path)
+
+	path, _ = problem.Opt2(*p1, p1.Adj_matrix, path)
+	problem.ShowGraph(p1, path)
+
+	path, _ = problem.Opt2_PickBest(*p1, p1.Adj_matrix, path)
+	problem.ShowGraph(p1, path)
+
+
+	problem.Random_k(*p1, 100)
 }
