@@ -16,7 +16,7 @@ type Problem struct {
 	name       string
 	dim        int
 	nodes      [][2]int
-	adj_matrix [][]int
+	Adj_matrix [][]int
 	// Edge_weight_type string
 	// Type             string
 	// Comment          string
@@ -60,7 +60,7 @@ func GenerateProblem(size int, min int, max int) *Problem {
 func (p Problem) EvaluateSolution(solution *Solution) int {
 	dist := 0
 	for i := 1; i <= len(solution.path); i++ {
-		dist += p.adj_matrix[solution.path[i]][solution.path[i-1]]
+		dist += p.Adj_matrix[solution.path[i]][solution.path[i-1]]
 	}
 	return dist
 }
@@ -97,8 +97,10 @@ func InitProblem(path string) *Problem {
 	}
 
 	problem.PrintProblem()
-	problem.adj_matrix = *problem.adjacency_matrix()
-	fmt.Println(problem.adj_matrix)
+	problem.Adj_matrix = *problem.adjacency_matrix()
+	// for i := range problem.adj_matrix {
+	// fmt.Println(problem.adj_matrix[i])
+	// }
 	file.Close()
 	return &problem
 }
@@ -117,6 +119,10 @@ func (p Problem) adjacency_matrix() *[][]int {
 		}
 	}
 	return &adj_matrix
+}
+
+func (p Problem) GetDistance(i1 int, i2 int) int {
+	return p.Adj_matrix[i1][i2]
 }
 
 func (p Problem) SaveProblemToFile() string {

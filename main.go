@@ -2,8 +2,7 @@ package main
 
 import (
 	//"math/rand"
-
-	// "fmt"
+	"fmt"
 	"meta-heur/tsp/problem"
 	// "os/exec"
 	//"time"
@@ -24,5 +23,7 @@ func main() {
 	// panic(err)
 	// }
 	// pr.PrintProblem()
-	problem.RandomAlgorithm(*p1)
+	path, distance := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	fmt.Println("Path:", *path)
+	fmt.Println("Distance = ", distance)
 }
