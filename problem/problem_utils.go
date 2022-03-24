@@ -60,9 +60,19 @@ func GenerateProblem(size int, min int, max int) *Problem {
 
 func (p Problem) EvaluateSolution(solution *Solution) int {
 	dist := 0
-	for i := 1; i <= len(solution.path); i++ {
+	for i := 1; i < len(solution.path); i++ {
 		dist += p.Adj_matrix[solution.path[i]][solution.path[i-1]]
 	}
+	dist += p.Adj_matrix[solution.path[len(solution.path)]][solution.path[0]]
+	return dist
+}
+
+func (p Problem) EvaluateSolution2(solution *[]int) int {
+	dist := 0
+	for i := 1; i < len(*solution); i++ {
+		dist += p.Adj_matrix[(*solution)[i]][(*solution)[i-1]]
+	}
+	dist += p.Adj_matrix[(*solution)[len(*solution)-1]][(*solution)[0]]
 	return dist
 }
 
