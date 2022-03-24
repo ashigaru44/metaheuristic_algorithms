@@ -17,6 +17,7 @@ type Problem struct {
 	dim        int
 	nodes      [][2]int
 	Adj_matrix [][]int
+	Path       []int
 	// Edge_weight_type string
 	// Type             string
 	// Comment          string
@@ -148,6 +149,13 @@ func (p Problem) SaveProblemToFile() string {
 	for i := range p.nodes {
 		_, err := w.WriteString(fmt.Sprintln(p.nodes[i]))
 		check(err)
+	}
+	if len(p.Path) > 0 {
+		w.WriteString(fmt.Sprintln())
+		for i := range p.Path {
+			_, err := w.WriteString(fmt.Sprintln(p.Path[i]))
+			check(err)
+		}
 	}
 	w.Flush()
 	ex, err := os.Executable()
