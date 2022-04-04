@@ -77,6 +77,18 @@ func (p Problem) EvaluateSolution2(solution *[]int) int {
 	return dist
 }
 
+func (p Problem) EvaluateSolutionIncrement(solution *[]int) *[]int {
+	dist := 0
+	next_distances := make([]int, len(*solution))
+	for i := 1; i < len(*solution); i++ {
+		dist += p.Adj_matrix[(*solution)[i]][(*solution)[i-1]]
+		next_distances[i-1] = dist
+	}
+	dist += p.Adj_matrix[(*solution)[len(*solution)-1]][(*solution)[0]]
+	next_distances[len(*solution) - 1] = dist
+	return &next_distances
+}
+
 func InitProblem(path string) *Problem {
 	file, err := os.Open(path)
 	check(err)
