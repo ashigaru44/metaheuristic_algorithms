@@ -167,10 +167,10 @@ func testNearest(p1 *problem.Problem) Result {
 	start := time.Now()
 	path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
 	duration := time.Since(start).Nanoseconds()
-	var elapsed float64 = float64(duration) / 1000000
-	fmt.Println("test Nearest took ", elapsed, " ms")
-	fmt.Println("Distance = ", p1.EvaluateSolution2(path))
-	fmt.Println("")
+	// var elapsed float64 = float64(duration) / 1000000
+	// fmt.Println("test Nearest took ", elapsed, " ms")
+	// fmt.Println("Distance = ", p1.EvaluateSolution2(path))
+	// fmt.Println("")
 	dist := p1.EvaluateSolution2(path)
 	return Result{path, dist, duration}
 }
@@ -201,10 +201,10 @@ func testRandomK(p1 *problem.Problem, k int) Result {
 	path, dist := problem.Random_k(*p1, k)
 	duration := time.Since(start).Nanoseconds()
 	//dist := p1.EvaluateSolution2(path)
-	var elapsed float64 = float64(duration) / 1000000
-	fmt.Println("test RandomTime took ", elapsed, " ms")
-	fmt.Println("Distance = ", p1.EvaluateSolution2(path))
-	fmt.Println("")
+	// var elapsed float64 = float64(duration) / 1000000
+	// fmt.Println("test RandomTime took ", elapsed, " ms")
+	// fmt.Println("Distance = ", p1.EvaluateSolution2(path))
+	// fmt.Println("")
 	return Result{path, dist, duration}
 }
 
@@ -212,11 +212,11 @@ func test_2opt(p1 *problem.Problem, initial_path *[]int) Result {
 	start := time.Now()
 	path, dist := problem.Opt2_PickBest(*p1, p1.Adj_matrix, initial_path)
 	duration := time.Since(start).Nanoseconds()
-	var elapsed float64 = float64(duration) / 1000000
+	// var elapsed float64 = float64(duration) / 1000000
 	//dist := p1.EvaluateSolution2(path)
-	fmt.Println("test 2Opt took ", elapsed, " ms")
-	fmt.Println("Distance = ", p1.EvaluateSolution2(path))
-	fmt.Println("")
+	// fmt.Println("\ntest 2Opt took ", elapsed, " ms")
+	// fmt.Println("Distance = ", p1.EvaluateSolution2(path))
+	// fmt.Println("")
 	return Result{path, dist, duration}
 
 }
@@ -241,27 +241,76 @@ func rest(p1 *problem.Problem) {
 	problem.Random_k(*p1, 100)
 }
 
-func compareAlgorithms(p *problem.Problem, initPath *[]int, alg1 Algorithm, alg2 Algorithm) {
-	ta := TestAlgorithm{p, int64(0), 500, initPath}
-	fmt.Println()
-	alg1_result := test_Algorithm(alg1, ta, 1)
-	alg2_result := test_Algorithm(alg2, ta, 1)
-	alg1_dist := alg1_result.avg_dist
-	alg2_dist := alg2_result.avg_dist
-	fmt.Println(alg1_dist)
-	fmt.Println(alg2_dist)
+func compareAlgorithms(p *problem.Problem, alg1 Algorithm, alg2 Algorithm, repeats int) {
+	alg1_distances := make([]int, repeats)
+	alg2_distances := make([]int, repeats)
+	alg3_distances := make([]int, repeats)
+
+	for i := 0; i < repeats; i++ {
+		initPath, _ := problem.NearestNeighbourAllPoints(*p, p.Adj_matrix)
+		// initPath, _ := problem.Random(*p)
+		ta := TestAlgorithm{p, int64(0), 100, initPath}
+		fmt.Println()
+		alg1_result := test_Algorithm(alg1, ta, 1)
+		alg2_result := test_Algorithm(alg2, ta, 1)
+		alg3_result := test_Algorithm(RandomK, ta, 1)
+		// alg1_dist := alg1_result.avg_dist
+		// alg2_dist := alg2_result.avg_dist
+		alg1_distances[i] = alg1_result.results[0].distance
+		alg2_distances[i] = alg2_result.results[0].distance
+		alg3_distances[i] = alg3_result.results[0].distance
+
+		// fmt.Println("Results_1: ")
+		// fmt.Println(alg1_result.results)
+		// fmt.Println("Results_2: ")
+		// fmt.Println(alg2_result.results)
+	}
+	for i := range alg1_distances {
+		fmt.Println(alg1_distances[i])
+	}
+
+	for i := range alg2_distances {
+		fmt.Println(alg2_distances[i])
+	}
+
+	for i := range alg3_distances {
+		fmt.Println(alg3_distances[i])
+	}
+
+	// initPath, _ := problem.Random(*p)
+	// ta := TestAlgorithm{p, int64(0), 100, initPath}
+	// fmt.Println()
+	// alg1_result := test_Algorithm(alg1, ta, repeats)
+	// alg2_result := test_Algorithm(alg2, ta, repeats)
+	// alg3_result := test_Algorithm(RandomK, ta, repeats)
+	// // alg1_dist := alg1_result.avg_dist
+	// // alg2_dist := alg2_result.avg_dist
+	// for i := range alg1_result.results {
+	// 	fmt.Println(alg1_result.results[i].distance)
+	// }
+	// for i := range alg2_result.results {
+	// 	fmt.Println(alg2_result.results[i].distance)
+	// }
+	// for i := range alg3_result.results {
+	// 	fmt.Println(alg3_result.results[i].distance)
+	// }
+
 }
 
 func main() {
 	//r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	problem_path := "./berlin52.tsp"
 	p1 := problem.InitProblem(problem_path)
-	path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	// path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
 	// path, _ := problem.Random(*p1)
 
-	compareAlgorithms(p1, path, Opt2, Nearest)
+	compareAlgorithms(p1, Opt2, Nearest, 40)
 	// ta := TestAlgorithm{p1, int64(0), 50, path}
-	// res := test_Algorithm(Nearest, ta, 1)
+	// test_Algorithm(Opt2, ta, 1)
+
+	// result_dist := res.avg_dist
+	// fmt.Println(result_dist)
+	// rest(p1)
 	// ta.duration = res.avg_time
 	// res = test_Algorithm(RandomTime, ta, 1)
 	// res = test_Algorithm(Opt2, ta, 1)
