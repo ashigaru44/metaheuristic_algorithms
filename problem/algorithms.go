@@ -50,7 +50,7 @@ func Random(p Problem) (*[]int, int) {
 // Random repeat k times ////////////////////////////////////////////////////////////////////////////
 
 func Random_k(p Problem, k int) (*[]int, int) {
-	fmt.Println("Random_k, k = ", k)
+	// fmt.Println("Random_k, k = ", k)
 	var best_route *[]int
 	for i := 0; i < k; i++ {
 		new_route, _ := Random(p)
@@ -144,7 +144,8 @@ func opt2_PickBestRec(p Problem, adj_matrix [][]int, solution *[]int, best_dista
 		}
 	}
 	if best_new_distance < best_distance {
-		//fmt.Println("best_new_distance: ", best_new_distance)
+		// fmt.Println("best_new_distance: ", best_new_distance)
+		// fmt.Println(best_new_distance)
 		return opt2_PickBestRec(p, adj_matrix, best_new_route, best_new_distance)
 	}
 	return solution, best_distance

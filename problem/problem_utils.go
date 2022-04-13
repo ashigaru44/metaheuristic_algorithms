@@ -6,11 +6,11 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-	"os/exec"
 )
 
 type Problem struct {
@@ -85,7 +85,7 @@ func (p Problem) EvaluateSolutionIncrement(solution *[]int) *[]int {
 		next_distances[i-1] = dist
 	}
 	dist += p.Adj_matrix[(*solution)[len(*solution)-1]][(*solution)[0]]
-	next_distances[len(*solution) - 1] = dist
+	next_distances[len(*solution)-1] = dist
 	return &next_distances
 }
 
