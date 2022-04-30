@@ -277,6 +277,46 @@ func mark_column(adj_matrix *[][]int, index int) {
 	}
 }
 
-// func slice_contain(slice1 *[]int, slice2 *[]int) {
-// for i:
-// }
+// TABU SEARCH ////////////////////////////////////////////////////////////////////////////
+
+type neighbouring_solutions struct {
+	swap_elements []int
+	distance      int
+}
+
+func tabu_search(p Problem, initial_solution *[]int, iters int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
+	tmp_adj_matrix := initTempAdjMatrix(p.Adj_matrix, p.dim)
+	// tabu list contains previous swap movements e.g. [[2;5],[1;7],[9:15]]
+	tabu_list := make([][]int, tabuTenure)
+	best_solution := initial_solution
+	best_distance := math.MaxInt32
+	current_solution := initial_solution
+	current_distance := math.MaxInt32
+
+	iter := 0
+	for iter < iters {
+		generate_solutions(current_solution)
+		iter++
+	}
+	return nil, -1
+}
+
+func swap(path *[]int, i int, j int) *[]int {
+	path_copy := make([]int, len(*path))
+	copy(path_copy, *path)
+	i = find_index_by_element(&path_copy, i)
+	j = find_index_by_element(&path_copy, j)
+	path_copy[i], path_copy[j] = path_copy[j], path_copy[i]
+	return &path_copy
+}
+
+func find_index_by_element(arr *[]int, element int) int {
+	for i := range *arr {
+		if (*arr)[i] == element {
+			return i
+		}
+	}
+	return -1
+}
+
+func generate_solutions(solution *[]int)
