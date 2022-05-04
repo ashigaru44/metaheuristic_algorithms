@@ -284,21 +284,82 @@ type neighbouring_solution struct {
 	distance      int
 }
 
-func Tabu_search(p Problem, initial_solution *[]int, iters int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
-	// tmp_adj_matrix := initTempAdjMatrix(p.Adj_matrix, p.dim)
+func (s neighbouring_solution) getValue() int {
+	return s.distance
+}
+
+func (s1 neighbouring_solution) isBiggerThan(s2 neighbouring_solution) bool {
+	return s1.distance > s2.distance
+}
+
+func Tabu_search(p Problem, initial_path *[]int, iters int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
 	// tabu list contains previous swap movements e.g. [[2;5],[1;7],[9:15]]
-	// tabu_list := make([][]int, tabuTenure)
-	// best_solution := initial_solution
-	// best_distance := math.MaxInt32
-	current_solution := initial_solution
-	// current_distance := math.MaxInt32
+	var tabu_list [][2]int
+	best_path := initial_path
+	best_distance := math.MaxInt32
+	current_path := initial_path
+	var current_distance int
 
 	iter := 0
 	for iter < iters {
-		generate_solutions(p, current_solution, tabuTenure)
-		iter++
+		current_distance = math.MaxInt32
+		neighbouring_solutions := generate_solutions(p, current_path, tabuTenure)
+		for {
+			var best_move [2]int
+			best_swap_dist := math.MaxInt32
+			best_sol_index := -1
+			for i, s := range neighbouring_solutions {
+				if s.getValue() < best_swap_dist {
+					best_move = s.swap_elements
+					best_swap_dist = s.distance
+					best_sol_index = i
+				}
+			}
+
+			// Check if move is in tabu list
+			var isTabu bool = false
+			for _, move := range tabu_list {
+				if move == best_move {
+					isTabu = true
+				}
+			}
+			// Case with move NOT IN tabu list
+			if !isTabu {
+				current_path = swap(current_path, best_move[0], best_move[1])
+				current_distance = p.EvaluateSolution2(current_path)
+				if best_swap_dist < best_distance {
+					best_path = current_path
+					best_distance = current_distance
+					iter = 0
+				} else {
+					// Move is not better then previously found, incrementing iterator
+					iter++
+				}
+				if len(tabu_list) >= tabuTenure {
+					tabu_list = tabu_list[1:]
+				}
+				tabu_list = append(tabu_list, best_move)
+
+				break
+				// Case with move IN tabu list
+			} else {
+				if float32(best_swap_dist) < float32(best_distance)*aspiration_criteria {
+					// Ignore tabu list if found distance is better then aspiration criteria
+					current_path = swap(current_path, best_move[0], best_move[1])
+					current_distance = p.EvaluateSolution2(current_path)
+					best_path = current_path
+					best_distance = current_distance
+
+					iter = 0
+					break
+				} else {
+					neighbouring_solutions[best_sol_index].distance = math.MaxInt32
+					continue
+				}
+			}
+		}
 	}
-	return nil, -1
+	return best_path, best_distance
 }
 
 func swap(path *[]int, i int, j int) *[]int {
@@ -319,29 +380,40 @@ func find_index_by_element(arr *[]int, element int) int {
 	return -1
 }
 
-func generate_solutions(p Problem, solution *[]int, tabuTenure int) []neighbouring_solution {
-	neighbouring_solutions := make([]neighbouring_solution, tabuTenure+1)
-	base_score := p.EvaluateSolution2(solution)
+func generate_solutions(p Problem, path *[]int, tabuTenure int) []neighbouring_solution {
+	var neighbouring_solutions []neighbouring_solution
+	base_score := p.EvaluateSolution2(path)
 	best_score := base_score
-	for i := 0; i < len(*solution); i++ {
-		for j := i + 1; j <= len(*solution)-1; j++ {
+	for i := 0; i < len(*path); i++ {
+		for j := i + 1; j <= len(*path)-1; j++ {
 			// fmt.Print("\nBase path: ", solution)
-			new_path := swap(solution, i, j)
+			new_path := swap(path, i, j)
 			// fmt.Print("\nNew Path: ", new_path)
 			new_path_score := p.EvaluateSolution2(new_path)
-			fmt.Print("\n i=", i, " j=", j)
-			if new_path_score > base_score {
-
-				if len(neighbouring_solutions) > tabuTenure+1 {
+			// fmt.Print("\n i=", i, " j=", j)
+			if new_path_score < best_score {
+				if len(neighbouring_solutions) > tabuTenure {
 					neighbouring_solutions = neighbouring_solutions[1:]
-				} else {
-					neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
 				}
+				neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
+				// } else if new_path_score < base_score && len(neighbouring_solutions) <= tabuTenure {
+			} else if len(neighbouring_solutions) <= tabuTenure {
+
+				neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
 			}
 
+			// if new_path_score > base_score {
+
+			// 	if len(neighbouring_solutions) > tabuTenure+1 && {
+			// 		neighbouring_solutions = neighbouring_solutions[1:]
+			// 	} else {
+			// 		neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
+			// 	}
+			// }
+
 		}
-		fmt.Print("\nNeighbouring solutions: ")
-		fmt.Print(neighbouring_solutions)
+		// fmt.Print("\nNeighbouring solutions: ")
+		// fmt.Print(neighbouring_solutions)
 		// for el := range neighbouring_solutions {
 		// print(el)
 		// }
