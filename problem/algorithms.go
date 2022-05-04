@@ -279,23 +279,23 @@ func mark_column(adj_matrix *[][]int, index int) {
 
 // TABU SEARCH ////////////////////////////////////////////////////////////////////////////
 
-type neighbouring_solutions struct {
-	swap_elements []int
+type neighbouring_solution struct {
+	swap_elements [2]int
 	distance      int
 }
 
-func tabu_search(p Problem, initial_solution *[]int, iters int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
-	tmp_adj_matrix := initTempAdjMatrix(p.Adj_matrix, p.dim)
+func Tabu_search(p Problem, initial_solution *[]int, iters int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
+	// tmp_adj_matrix := initTempAdjMatrix(p.Adj_matrix, p.dim)
 	// tabu list contains previous swap movements e.g. [[2;5],[1;7],[9:15]]
-	tabu_list := make([][]int, tabuTenure)
-	best_solution := initial_solution
-	best_distance := math.MaxInt32
+	// tabu_list := make([][]int, tabuTenure)
+	// best_solution := initial_solution
+	// best_distance := math.MaxInt32
 	current_solution := initial_solution
-	current_distance := math.MaxInt32
+	// current_distance := math.MaxInt32
 
 	iter := 0
 	for iter < iters {
-		generate_solutions(current_solution)
+		generate_solutions(p, current_solution, tabuTenure)
 		iter++
 	}
 	return nil, -1
@@ -319,4 +319,33 @@ func find_index_by_element(arr *[]int, element int) int {
 	return -1
 }
 
-func generate_solutions(solution *[]int)
+func generate_solutions(p Problem, solution *[]int, tabuTenure int) []neighbouring_solution {
+	neighbouring_solutions := make([]neighbouring_solution, tabuTenure+1)
+	base_score := p.EvaluateSolution2(solution)
+	best_score := base_score
+	for i := 0; i < len(*solution); i++ {
+		for j := i + 1; j <= len(*solution)-1; j++ {
+			// fmt.Print("\nBase path: ", solution)
+			new_path := swap(solution, i, j)
+			// fmt.Print("\nNew Path: ", new_path)
+			new_path_score := p.EvaluateSolution2(new_path)
+			fmt.Print("\n i=", i, " j=", j)
+			if new_path_score > base_score {
+
+				if len(neighbouring_solutions) > tabuTenure+1 {
+					neighbouring_solutions = neighbouring_solutions[1:]
+				} else {
+					neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
+				}
+			}
+
+		}
+		fmt.Print("\nNeighbouring solutions: ")
+		fmt.Print(neighbouring_solutions)
+		// for el := range neighbouring_solutions {
+		// print(el)
+		// }
+	}
+
+	return neighbouring_solutions
+}
