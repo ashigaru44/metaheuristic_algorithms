@@ -15,10 +15,10 @@ func main() {
 	//r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	problem_path := "./berlin52.tsp"
 	p1 := problem.InitProblem(problem_path)
-	path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
-	// path, _ := problem.Random(*p1)
+	// path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
+	path, _ := problem.Random(*p1)
 	var distance int
-	path, distance = problem.Tabu_search(*p1, path, 2000, 0.9, 15)
+	path, distance = problem.Tabu_search(*p1, path, 15000, 0.985, 30)
 	fmt.Print("distance = ", distance)
 	problem.ShowGraph(p1, path)
 	// utils.CompareAlgorithms(p1, utils.Opt2, utils.Nearest, 40)

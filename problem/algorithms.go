@@ -292,7 +292,7 @@ func (s1 neighbouring_solution) isBiggerThan(s2 neighbouring_solution) bool {
 	return s1.distance > s2.distance
 }
 
-func Tabu_search(p Problem, initial_path *[]int, iters int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
+func Tabu_search(p Problem, initial_path *[]int, terminate_criteria int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
 	// tabu list contains previous swap movements e.g. [[2;5],[1;7],[9:15]]
 	var tabu_list [][2]int
 	best_path := initial_path
@@ -301,7 +301,9 @@ func Tabu_search(p Problem, initial_path *[]int, iters int, aspiration_criteria 
 	var current_distance int
 
 	iter := 0
-	for iter < iters {
+	terminate := 0
+	for terminate < terminate_criteria {
+		// fmt.Print("\n###iter ", iter, " Current distance: ", current_distance, " Best_distance: ", best_distance)
 		current_distance = math.MaxInt32
 		neighbouring_solutions := generate_solutions(p, current_path, tabuTenure)
 		for {
@@ -330,10 +332,11 @@ func Tabu_search(p Problem, initial_path *[]int, iters int, aspiration_criteria 
 				if best_swap_dist < best_distance {
 					best_path = current_path
 					best_distance = current_distance
-					iter = 0
+					terminate = 0
+
 				} else {
 					// Move is not better then previously found, incrementing iterator
-					iter++
+					terminate++
 				}
 				if len(tabu_list) >= tabuTenure {
 					tabu_list = tabu_list[1:]
@@ -345,12 +348,13 @@ func Tabu_search(p Problem, initial_path *[]int, iters int, aspiration_criteria 
 			} else {
 				if float32(best_swap_dist) < float32(best_distance)*aspiration_criteria {
 					// Ignore tabu list if found distance is better then aspiration criteria
+					// fmt.Print("\nAspiration criteria has been acheived\nBest distance: ", best_distance)
 					current_path = swap(current_path, best_move[0], best_move[1])
 					current_distance = p.EvaluateSolution2(current_path)
+					// fmt.Print(" Current distance: ", current_distance)
 					best_path = current_path
 					best_distance = current_distance
-
-					iter = 0
+					terminate = 0
 					break
 				} else {
 					neighbouring_solutions[best_sol_index].distance = math.MaxInt32
@@ -358,6 +362,7 @@ func Tabu_search(p Problem, initial_path *[]int, iters int, aspiration_criteria 
 				}
 			}
 		}
+		iter++
 	}
 	return best_path, best_distance
 }
