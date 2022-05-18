@@ -2,13 +2,17 @@ package problem
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
+	"sync"
 	"time"
 	// "sort"
 )
 
 // UTILS
+
+var wg sync.WaitGroup
 
 func initTempAdjMatrix(adj_matrix [][]int, size int) [][]int {
 	tmp_adj_matrix := make([][]int, size)
@@ -292,7 +296,66 @@ func (s1 neighbouring_solution) isBiggerThan(s2 neighbouring_solution) bool {
 	return s1.distance > s2.distance
 }
 
-func Tabu_search(p Problem, initial_path *[]int, terminate_criteria int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
+}
+
+func Tabu_search_concurrent(p Problem, initial_method string, terminate_criteria int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
+	num_of_routines := 25
+	initial_paths := make([]*[]int, num_of_routines)
+	channels_paths := make([]chan []int, num_of_routines)
+	channels_dists := make([]chan int, num_of_routines)
+	best_distances := make([]int, num_of_routines)
+	var best_path []int
+	best_distance := math.MaxInt32
+
+	wg.Add(num_of_routines)
+
+	for i := 0; i < num_of_routines; i++ {
+		initial_paths[i], _ = Random_k(p, 100)
+	}
+	for i := 0; i < num_of_routines; i++ {
+		channels_paths[i] = make(chan []int, 1)
+		channels_dists[i] = make(chan int, 1)
+		go Tabu_search(p, initial_paths[i], terminate_criteria, aspiration_criteria, tabuTenure, channels_paths[i], channels_dists[i])
+	}
+	wg.Wait()
+
+	var best_dist_index int
+
+	for i, dist_channel := range channels_dists {
+		best_distances[i] = <-dist_channel
+	}
+
+	for i, dist := range best_distances {
+		if dist < best_distance {
+			best_distance = dist
+			best_dist_index = i
+		}
+	}
+
+	best_path = <-channels_paths[best_dist_index]
+
+	return &best_path, best_distance
+}
+
+func Tabu_search(p Problem,
+	initial_path *[]int,
+	terminate_criteria int,
+	aspiration_criteria float32,
+	tabuTenure int,
+	ch_best_path chan<- []int,
+	// ch_best_new_path <-chan []int,
+	ch_best_dist chan<- int,
+) (*[]int, int) {
+
+	defer timeTrack(time.Now(), "Tabu_search")
+	defer func() {
+		close(ch_best_dist)
+		close(ch_best_path)
+	}()
+	defer wg.Done()
 	// tabu list contains previous swap movements e.g. [[2;5],[1;7],[9:15]]
 	var tabu_list [][2]int
 	best_path := initial_path
@@ -351,7 +414,6 @@ func Tabu_search(p Problem, initial_path *[]int, terminate_criteria int, aspirat
 					// fmt.Print("\nAspiration criteria has been acheived\nBest distance: ", best_distance)
 					current_path = swap(current_path, best_move[0], best_move[1])
 					current_distance = p.EvaluateSolution2(current_path)
-					// fmt.Print(" Current distance: ", current_distance)
 					best_path = current_path
 					best_distance = current_distance
 					terminate = 0
@@ -364,6 +426,8 @@ func Tabu_search(p Problem, initial_path *[]int, terminate_criteria int, aspirat
 		}
 		iter++
 	}
+	ch_best_dist <- best_distance
+	ch_best_path <- *best_path
 	return best_path, best_distance
 }
 
@@ -391,37 +455,18 @@ func generate_solutions(p Problem, path *[]int, tabuTenure int) []neighbouring_s
 	best_score := base_score
 	for i := 0; i < len(*path); i++ {
 		for j := i + 1; j <= len(*path)-1; j++ {
-			// fmt.Print("\nBase path: ", solution)
 			new_path := swap(path, i, j)
-			// fmt.Print("\nNew Path: ", new_path)
 			new_path_score := p.EvaluateSolution2(new_path)
-			// fmt.Print("\n i=", i, " j=", j)
 			if new_path_score < best_score {
 				if len(neighbouring_solutions) > tabuTenure {
 					neighbouring_solutions = neighbouring_solutions[1:]
 				}
 				neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
-				// } else if new_path_score < base_score && len(neighbouring_solutions) <= tabuTenure {
 			} else if len(neighbouring_solutions) <= tabuTenure {
 
 				neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
 			}
-
-			// if new_path_score > base_score {
-
-			// 	if len(neighbouring_solutions) > tabuTenure+1 && {
-			// 		neighbouring_solutions = neighbouring_solutions[1:]
-			// 	} else {
-			// 		neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
-			// 	}
-			// }
-
 		}
-		// fmt.Print("\nNeighbouring solutions: ")
-		// fmt.Print(neighbouring_solutions)
-		// for el := range neighbouring_solutions {
-		// print(el)
-		// }
 	}
 
 	return neighbouring_solutions

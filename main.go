@@ -5,7 +5,6 @@ import (
 
 	"fmt"
 	"meta-heur/tsp/problem"
-	//"time"
 	//"sort"
 )
 
@@ -13,13 +12,14 @@ import (
 
 func main() {
 	//r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	problem_path := "./berlin52.tsp"
+	problem_path := "./input_data/pr76.tsp"
 	p1 := problem.InitProblem(problem_path)
 	// path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
 	path, _ := problem.Random(*p1)
 	var distance int
-	path, distance = problem.Tabu_search(*p1, path, 15000, 0.985, 30)
-	fmt.Print("distance = ", distance)
+	path, distance = problem.Tabu_search_concurrent(*p1, ":", 2000, 0.985, 30)
+	// path, distance = problem.Tabu_search(*p1, path, 1000, 0.985, 30)
+	fmt.Println("distance = ", distance)
 	problem.ShowGraph(p1, path)
 	// utils.CompareAlgorithms(p1, utils.Opt2, utils.Nearest, 40)
 
