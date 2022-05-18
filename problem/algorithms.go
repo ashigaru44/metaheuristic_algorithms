@@ -10,6 +10,13 @@ import (
 	// "sort"
 )
 
+type TabuNeigbourAlgorithm int
+
+const (
+	SwapTabu TabuNeigbourAlgorithm = 0
+	Opt2Tabu                       = 1
+)
+
 // UTILS
 
 var wg sync.WaitGroup
@@ -301,8 +308,7 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s took %s", name, elapsed)
 }
 
-func Tabu_search_concurrent(p Problem, initial_method string, terminate_criteria int, aspiration_criteria float32, tabuTenure int) (*[]int, int) {
-	num_of_routines := 25
+func Tabu_search_concurrent(p Problem, initial_method string, terminate_criteria int, aspiration_criteria float32, tabuTenure int, num_of_routines int, alg TabuNeigbourAlgorithm) (*[]int, int) {
 	initial_paths := make([]*[]int, num_of_routines)
 	channels_paths := make([]chan []int, num_of_routines)
 	channels_dists := make([]chan int, num_of_routines)
@@ -318,7 +324,7 @@ func Tabu_search_concurrent(p Problem, initial_method string, terminate_criteria
 	for i := 0; i < num_of_routines; i++ {
 		channels_paths[i] = make(chan []int, 1)
 		channels_dists[i] = make(chan int, 1)
-		go Tabu_search(p, initial_paths[i], terminate_criteria, aspiration_criteria, tabuTenure, channels_paths[i], channels_dists[i])
+		go Tabu_search(p, initial_paths[i], terminate_criteria, aspiration_criteria, tabuTenure, channels_paths[i], channels_dists[i], alg)
 	}
 	wg.Wait()
 
@@ -348,7 +354,7 @@ func Tabu_search(p Problem,
 	ch_best_path chan<- []int,
 	// ch_best_new_path <-chan []int,
 	ch_best_dist chan<- int,
-) (*[]int, int) {
+	alg TabuNeigbourAlgorithm) (*[]int, int) {
 
 	defer timeTrack(time.Now(), "Tabu_search")
 	defer func() {
@@ -362,13 +368,24 @@ func Tabu_search(p Problem,
 	best_distance := math.MaxInt32
 	current_path := initial_path
 	var current_distance int
+	var neighbouring_solutions []neighbouring_solution
 
 	iter := 0
 	terminate := 0
 	for terminate < terminate_criteria {
 		// fmt.Print("\n###iter ", iter, " Current distance: ", current_distance, " Best_distance: ", best_distance)
 		current_distance = math.MaxInt32
-		neighbouring_solutions := generate_solutions(p, current_path, tabuTenure)
+		switch alg {
+		case SwapTabu:
+			neighbouring_solutions = generate_solutions(p, current_path, tabuTenure)
+		case Opt2Tabu:
+			neighbouring_solutions = generate_solutions_2opt(p, current_path, tabuTenure)
+		}
+
+		if len(neighbouring_solutions) == 0 {
+			fmt.Println("lmao")
+		}
+		//neighbouring_solutions := generate_solutions(p, current_path, tabuTenure)
 		for {
 			var best_move [2]int
 			best_swap_dist := math.MaxInt32
@@ -390,8 +407,16 @@ func Tabu_search(p Problem,
 			}
 			// Case with move NOT IN tabu list
 			if !isTabu {
-				current_path = swap(current_path, best_move[0], best_move[1])
+				//current_path = swap(current_path, best_move[0], best_move[1])
+				// current_path = 2opt
+				switch alg {
+				case SwapTabu:
+					current_path = swap(current_path, best_move[0], best_move[1])
+				case Opt2Tabu:
+					current_path = opt2Swap(current_path, best_move[0], best_move[1])
+				}
 				current_distance = p.EvaluateSolution2(current_path)
+				//fmt.Println(current_distance)
 				if best_swap_dist < best_distance {
 					best_path = current_path
 					best_distance = current_distance
@@ -419,6 +444,7 @@ func Tabu_search(p Problem,
 					terminate = 0
 					break
 				} else {
+					// break
 					neighbouring_solutions[best_sol_index].distance = math.MaxInt32
 					continue
 				}
@@ -456,6 +482,29 @@ func generate_solutions(p Problem, path *[]int, tabuTenure int) []neighbouring_s
 	for i := 0; i < len(*path); i++ {
 		for j := i + 1; j <= len(*path)-1; j++ {
 			new_path := swap(path, i, j)
+			new_path_score := p.EvaluateSolution2(new_path)
+			if new_path_score < best_score {
+				if len(neighbouring_solutions) > tabuTenure {
+					neighbouring_solutions = neighbouring_solutions[1:]
+				}
+				neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
+			} else if len(neighbouring_solutions) <= tabuTenure {
+
+				neighbouring_solutions = append(neighbouring_solutions, neighbouring_solution{[2]int{i, j}, new_path_score})
+			}
+		}
+	}
+
+	return neighbouring_solutions
+}
+
+func generate_solutions_2opt(p Problem, path *[]int, tabuTenure int) []neighbouring_solution {
+	var neighbouring_solutions []neighbouring_solution
+	base_score := p.EvaluateSolution2(path)
+	best_score := base_score
+	for i := 0; i < len(*path)-1; i++ {
+		for j := i + 1; j < len(*path); j++ {
+			new_path := opt2Swap(path, i, j)
 			new_path_score := p.EvaluateSolution2(new_path)
 			if new_path_score < best_score {
 				if len(neighbouring_solutions) > tabuTenure {

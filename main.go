@@ -17,7 +17,7 @@ func main() {
 	// path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
 	path, _ := problem.Random(*p1)
 	var distance int
-	path, distance = problem.Tabu_search_concurrent(*p1, ":", 2000, 0.985, 30)
+	path, distance = problem.Tabu_search_concurrent(*p1, ":", 2000, 0.985, 30, 20, 1)
 	// path, distance = problem.Tabu_search(*p1, path, 1000, 0.985, 30)
 	fmt.Println("distance = ", distance)
 	problem.ShowGraph(p1, path)
