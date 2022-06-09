@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 	// "sort"
@@ -356,6 +357,10 @@ func Tabu_search(p Problem,
 	ch_best_dist chan<- int,
 	alg TabuNeigbourAlgorithm) (*[]int, int) {
 
+	f, _ := os.Create("./output.txt")
+	//check(err)
+	defer f.Close()
+
 	defer timeTrack(time.Now(), "Tabu_search")
 	defer func() {
 		close(ch_best_dist)
@@ -451,7 +456,11 @@ func Tabu_search(p Problem,
 			}
 		}
 		iter++
+		//fmt.Println(best_distance)
+		f.WriteString(fmt.Sprintf("%d\n", best_distance))
 	}
+	f.Sync()
+	fmt.Println("END")
 	ch_best_dist <- best_distance
 	ch_best_path <- *best_path
 	return best_path, best_distance
