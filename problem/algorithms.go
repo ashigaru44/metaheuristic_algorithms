@@ -319,9 +319,17 @@ func Tabu_search_concurrent(p Problem, initial_method string, terminate_criteria
 
 	wg.Add(num_of_routines)
 
-	for i := 0; i < num_of_routines; i++ {
-		initial_paths[i], _ = Random_k(p, 100)
+	switch initial_method {
+	case "random":
+		for i := 0; i < num_of_routines; i++ {
+			initial_paths[i], _ = Random_k(p, 100)
+		}
+	case "NN":
+		for i := 0; i < num_of_routines; i++ {
+			initial_paths[i], _ = NearestNeighbourAllPoints(p, p.Adj_matrix)
+		}
 	}
+
 	for i := 0; i < num_of_routines; i++ {
 		channels_paths[i] = make(chan []int, 1)
 		channels_dists[i] = make(chan int, 1)
@@ -421,7 +429,7 @@ func Tabu_search(p Problem,
 					current_path = opt2Swap(current_path, best_move[0], best_move[1])
 				}
 				current_distance = p.EvaluateSolution2(current_path)
-				//fmt.Println(current_distance)
+				// fmt.Println("###########   ", current_distance == best_swap_dist)
 				if best_swap_dist < best_distance {
 					best_path = current_path
 					best_distance = current_distance
@@ -442,7 +450,12 @@ func Tabu_search(p Problem,
 				if float32(best_swap_dist) < float32(best_distance)*aspiration_criteria {
 					// Ignore tabu list if found distance is better then aspiration criteria
 					// fmt.Print("\nAspiration criteria has been acheived\nBest distance: ", best_distance)
-					current_path = swap(current_path, best_move[0], best_move[1])
+					switch alg {
+					case SwapTabu:
+						current_path = swap(current_path, best_move[0], best_move[1])
+					case Opt2Tabu:
+						current_path = opt2Swap(current_path, best_move[0], best_move[1])
+					}
 					current_distance = p.EvaluateSolution2(current_path)
 					best_path = current_path
 					best_distance = current_distance
