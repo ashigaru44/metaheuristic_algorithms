@@ -150,7 +150,7 @@ func (p Problem) GetDistance(i1 int, i2 int) int {
 }
 
 func (p Problem) SaveProblemToFile() string {
-	file_path := "\\data\\problem_data.txt"
+	file_path := "/data/problem_data.txt"
 	f, err := os.Create("." + file_path)
 	check(err)
 
@@ -182,8 +182,26 @@ func ShowGraph(p *Problem, path *[]int) {
 	saved_problem_path := p.SaveProblemToFile()
 	fmt.Println("Path:", *path)
 	fmt.Println("Distance = ", p.EvaluateSolution2(path))
-	err := exec.Command("python", "./visualize.py", saved_problem_path).Run()
+	err := exec.Command("python3", "./visualize.py", saved_problem_path).Run()
 	if err != nil {
 		panic(err)
 	}
+}
+
+func Contains(element int, path *[]int) bool {
+	for _, x := range *path {
+		if x == element {
+			return true
+		}
+	}
+	return false
+}
+
+func Where(element int, path *[]int) int {
+	for i, x := range *path {
+		if x == element {
+			return i
+		}
+	}
+	return -1
 }

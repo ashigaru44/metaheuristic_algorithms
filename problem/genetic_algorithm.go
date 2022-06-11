@@ -1,11 +1,13 @@
 package problem
 
 import (
+	"fmt"
+	"math"
 	"math/rand"
 	"time"
 )
 
-var probability_mutation_individual = 0.05
+var probability_mutation_individual = 0.02
 
 // "sort"
 type generation struct {
@@ -49,7 +51,7 @@ func tournament_selection(g generation, tournament_size int) *[]int {
 			fighters = append(fighters, random_fighter)
 		}
 	}
-	best_distance := g.distances[0]
+	best_distance := math.MaxInt32
 	best_fighter := g.path(0)
 	for _, fighter := range fighters {
 		if g.distances[fighter] < best_distance {
@@ -102,8 +104,64 @@ func ordered_crossover(parent_one *[]int, parent_two *[]int) *[]int {
 	return &child
 }
 
-// ----------------------------------------------------------   MUTATIONS
+func crossover_pm(p Problem, parent_one *[]int, parent_two *[]int) *[]int {
+	child_1 := crossover_pm_helper(parent_one, parent_two)
+	child_2 := crossover_pm_helper(parent_one, parent_two)
+	child_1_dist := p.EvaluateSolution2(child_1)
+	child_2_dist := p.EvaluateSolution2(child_2)
+	if child_1_dist > child_2_dist {
+		return child_2
+	} else {
+		return child_1
+	}
+}
 
+func crossover_pm_helper(parent_one *[]int, parent_two *[]int) *[]int {
+	child := make([]int, len(*parent_one))
+	for i := range child {
+		child[i] = -1
+	}
+
+	size := len(*parent_one)
+	start_point := rand.Intn(size)
+	end_point := rand.Intn(size)
+
+	for start_point == end_point {
+		end_point = rand.Intn(size)
+	}
+
+	if start_point > end_point {
+		temp := end_point
+		end_point = start_point
+		start_point = temp
+	}
+
+	for i := start_point; i <= end_point; i++ {
+		child[i] = (*parent_one)[i]
+	}
+
+	for i := start_point; i <= end_point; i++ {
+		if !Contains((*parent_two)[i], &child) {
+			searched_val := (*parent_one)[i]
+			searched_val_index := Where(searched_val, parent_two)
+
+			for child[searched_val_index] != -1 {
+				searched_val := child[searched_val_index]
+				searched_val_index = Where(searched_val, parent_two)
+			}
+			child[searched_val_index] = (*parent_two)[i]
+		}
+	}
+
+	for i := range child {
+		if child[i] == -1 {
+			child[i] = (*parent_two)[i]
+		}
+	}
+	return &child
+}
+
+// ----------------------------------------------------------   MUTATIONS
 func mutation_swap(individual *[]int) {
 	dimension := len(*individual)
 	first_index := rand.Intn(dimension)
@@ -173,29 +231,35 @@ func Genetic_generate_solution(p Problem,
 	new_population := empty_generation(p, population_size)
 
 	for i := 0; i < iterations; i++ {
+		mean := 0
 		for j := 0; j < population_size; j++ {
 
 			parent_1 := *tournament_selection(old_population, tournament_size)
 			var child []int
 			if rand.Float32() <= probability_cross {
 				parent_2 := *tournament_selection(old_population, tournament_size)
-				child = *ordered_crossover(&parent_1, &parent_2)
+				child = *crossover_pm(p, &parent_1, &parent_2)
 			} else {
 				child = parent_1
 			}
 			if rand.Float32() <= probability_mutate {
-				mutation_swap_linear(&child)
+				mutation_invert(&child)
 			}
 
 			new_population.individuals[j] = child
 			new_population.distances[j] = p.EvaluateSolution2(&child)
+			mean += new_population.distances[j]
 		}
+		mean /= population_size
 		old_population = new_population
+		fmt.Println("Iteration: ", i, mean)
+		// for j := 0; j < population_size; j++ {
+		// 	fmt.Println(j, "=", new_population.distances[j])
+		// }
 		new_population = generation{}
 		new_population = empty_generation(p, population_size)
 
 	}
-
 	best_dist := old_population.distances[0]
 	best_ind := old_population.individuals[0]
 	for i := range old_population.distances {
