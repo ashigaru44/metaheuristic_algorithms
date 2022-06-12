@@ -173,6 +173,10 @@ func (p Problem) GetDistance(i1 int, i2 int) int {
 	return p.Adj_matrix[i1][i2]
 }
 
+func (p Problem) GetDim() int {
+	return p.dim
+}
+
 func (p Problem) SaveProblemToFile() string {
 	file_path := "/data/problem_data.txt"
 	f, err := os.Create("." + file_path)
