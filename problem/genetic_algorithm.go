@@ -4,15 +4,30 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sort"
 	"time"
 )
 
 var probability_mutation_individual = 0.02
 
 // "sort"
+// type individual struct {
+// 	path []int
+// 	distance int
+// }
+
 type generation struct {
 	individuals [][]int
 	distances   []int
+}
+
+type ByDistance generation
+
+func (a ByDistance) Len() int           { return len(a.individuals) }
+func (a ByDistance) Less(i, j int) bool { return a.distances[i] < a.distances[j] }
+func (a ByDistance) Swap(i, j int) {
+	a.distances[i], a.distances[j] = a.distances[j], a.distances[i]
+	a.individuals[i], a.individuals[j] = a.individuals[j], a.individuals[i]
 }
 
 func (p generation) path(id int) *[]int {
@@ -21,6 +36,17 @@ func (p generation) path(id int) *[]int {
 
 func (p generation) size() int {
 	return len(p.distances)
+}
+
+func (p generation) elitism(elite_individuals int, new_pop generation) generation {
+	sort.Sort(ByDistance(p))
+
+	for i := 0; i < elite_individuals; i++ {
+		new_pop.individuals[i] = p.individuals[i]
+		new_pop.distances[i] = p.distances[i]
+	}
+	// new_pop.individuals[:elite_individuals] = p.individuals[:elite_individuals]
+	return new_pop
 }
 
 func generate_random_generation(p Problem, size int) generation {
@@ -224,9 +250,11 @@ func Genetic_generate_solution(p Problem,
 	population_size int,
 	iterations int,
 	tournament_size int,
+	elitism_size float32,
 ) *[]int {
 
 	rand.Seed(time.Now().UnixNano())
+	elite_individuals := int(elitism_size * float32(population_size))
 	old_population := generate_random_generation(p, population_size)
 	new_population := empty_generation(p, population_size)
 
@@ -238,7 +266,7 @@ func Genetic_generate_solution(p Problem,
 			var child []int
 			if rand.Float32() <= probability_cross {
 				parent_2 := *tournament_selection(old_population, tournament_size)
-				child = *crossover_pm(p, &parent_1, &parent_2)
+				child = *ordered_crossover(&parent_1, &parent_2)
 			} else {
 				child = parent_1
 			}
@@ -252,12 +280,15 @@ func Genetic_generate_solution(p Problem,
 		}
 		mean /= population_size
 		old_population = new_population
-		fmt.Println("Iteration: ", i, mean)
+
 		// for j := 0; j < population_size; j++ {
 		// 	fmt.Println(j, "=", new_population.distances[j])
 		// }
 		new_population = generation{}
 		new_population = empty_generation(p, population_size)
+		new_population = old_population.elitism(elite_individuals, new_population)
+		fmt.Print("\nIteration: ", i)
+		fmt.Print("\t Worst individual: ", old_population.distances[population_size-1], "\t Average individual: ", mean, "\t Best individual: ", old_population.distances[0])
 
 	}
 	best_dist := old_population.distances[0]
