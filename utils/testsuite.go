@@ -10,6 +10,25 @@ const TEST_REPEAT = 5
 func test_run_GA() {
 	problems := generate_testing_problems()
 
+	for _, problem := range problems {
+		crossing_testing(problem)
+	}
+
+	for _, problem := range problems {
+		mutation_testing(problem)
+	}
+
+	for _, problem := range problems {
+		population_size_testing(problem)
+	}
+
+	for _, problem := range problems {
+		tournament_size_testing(problem)
+	}
+
+	for _, problem := range problems {
+		elitism_size_testing(problem)
+	}
 }
 
 func generate_testing_problems() [16]problem.Problem {
@@ -21,9 +40,9 @@ func generate_testing_problems() [16]problem.Problem {
 	problems[1] = *problem.InitProblem(problem2_path)
 	for i := 2; i < len(problems); i++ {
 		if i < 8 {
-			problems[i] = *problem.GenerateProblem(1000, 40, 150, false)
+			problems[i] = *problem.GenerateProblem(200, 40, 150, false)
 		} else {
-			problems[i] = *problem.GenerateProblem(1000, 40, 150, true)
+			problems[i] = *problem.GenerateProblem(200, 40, 150, true)
 		}
 	}
 	return problems
