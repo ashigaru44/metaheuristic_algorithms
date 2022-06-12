@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -24,6 +26,24 @@ type generation struct {
 type island struct {
 	old_population generation
 	new_population generation
+}
+
+func (p generation) get_results() (int, int, int) {
+	best_dist := math.MaxInt32
+	worst_dist := 0
+	avg_dist := 0
+
+	for i := range p.distances {
+		new_dist := p.distances[i]
+		avg_dist += new_dist
+		if worst_dist < new_dist {
+			worst_dist = new_dist
+		}
+		if best_dist > new_dist {
+			best_dist = new_dist
+		}
+	}
+	return worst_dist, avg_dist / len(p.distances), best_dist
 }
 
 type ByDistance generation
@@ -256,8 +276,14 @@ func Genetic_generate_solution(p Problem,
 	iterations int,
 	tournament_size int,
 	elitism_size float32,
+	id int,
 ) *[]int {
 
+	file_name := "./test_output_" + strconv.Itoa(id) + ".txt"
+	f, _ := os.Create(file_name)
+	f.WriteString(fmt.Sprintf("Worst;Avg;Best\n"))
+	//check(err)
+	defer f.Close()
 	rand.Seed(time.Now().UnixNano())
 	elite_individuals := int(elitism_size * float32(population_size))
 	old_population := generate_random_generation(p, population_size)
@@ -294,6 +320,10 @@ func Genetic_generate_solution(p Problem,
 		new_population = old_population.elitism(elite_individuals, new_population)
 		fmt.Print("\nIteration: ", i)
 		fmt.Print("\t Worst individual: ", old_population.distances[population_size-1], "\t Average individual: ", mean, "\t Best individual: ", old_population.distances[0])
+		f.WriteString(fmt.Sprintf("%d;%d;%d\n",
+			old_population.distances[population_size-1],
+			mean,
+			old_population.distances[0]))
 
 	}
 	best_dist := old_population.distances[0]
@@ -317,7 +347,26 @@ func GA_Islands_generate_solution(p Problem,
 	islands_amount int,
 	migration_rate float32,
 	migration_interval int,
+	id int,
+	migration_start_ratio int,
 ) *[]int {
+
+	file_name := "./test_island_output_" + strconv.Itoa(id) + ".txt"
+	f, _ := os.Create(file_name)
+	f.WriteString(fmt.Sprintf("Worst;Avg;Best\n"))
+	//check(err)
+	defer f.Close()
+
+	file_name2 := "./test_islands_best_output_" + strconv.Itoa(id) + ".txt"
+	f2, _ := os.Create(file_name2)
+	names := ""
+	for i := 1; i < islands_amount; i++ {
+		names += "i_" + strconv.Itoa(i) + ";"
+	}
+	names += "i_" + strconv.Itoa(islands_amount) + "\n"
+	f2.WriteString(names)
+	//check(err)
+	defer f2.Close()
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -345,7 +394,7 @@ func GA_Islands_generate_solution(p Problem,
 					child = parent_1
 				}
 				if rand.Float32() <= probability_mutate {
-					mutation_swap_linear(&child)
+					mutation_invert(&child)
 				}
 
 				islands[l].new_population.individuals[j] = child
@@ -357,10 +406,21 @@ func GA_Islands_generate_solution(p Problem,
 			islands[l].new_population = generation{}
 			islands[l].new_population = empty_generation(p, island_population_size)
 
+			_, _, best := islands[l].old_population.get_results()
+
+			if l < islands_amount-1 {
+				f2.WriteString(fmt.Sprintf("%d;", best))
+			} else {
+				f2.WriteString(fmt.Sprintf("%d", best))
+			}
+
 		}
+		worst, avg, best := islands[0].old_population.get_results()
+		f.WriteString(fmt.Sprintf("%d;%d;%d\n", worst, avg, best))
+		f2.WriteString(fmt.Sprintf("\n"))
 
 		// handle migration
-		if i%migration_interval == 0 {
+		if i%migration_interval == 0 && i >= iterations/migration_start_ratio {
 			fmt.Println("Migration ", i/migration_interval+1, " / ", iterations/migration_interval)
 			migrants := make([]generation, islands_amount)
 
@@ -396,6 +456,8 @@ func GA_Islands_generate_solution(p Problem,
 		}
 
 	}
+	f.Sync()
+	f2.Sync()
 
 	best_dist := islands[0].old_population.distances[0]
 	best_ind := islands[0].old_population.individuals[0]
