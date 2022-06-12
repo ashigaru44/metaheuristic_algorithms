@@ -277,7 +277,7 @@ func Genetic_generate_solution(p Problem,
 	tournament_size int,
 	elitism_size float32,
 	id int,
-) *[]int {
+) (*[]int, int) {
 
 	file_name := "./test_output_" + strconv.Itoa(id) + ".txt"
 	f, _ := os.Create(file_name)
@@ -319,12 +319,13 @@ func Genetic_generate_solution(p Problem,
 		new_population = generation{}
 		new_population = empty_generation(p, population_size)
 		new_population = old_population.elitism(elite_individuals, new_population)
-		fmt.Print("\nIteration: ", i)
-		fmt.Print("\t Worst individual: ", old_population.distances[population_size-1], "\t Average individual: ", mean, "\t Best individual: ", old_population.distances[0])
-		f.WriteString(fmt.Sprintf("%d;%d;%d\n",
-			old_population.distances[population_size-1],
-			mean,
-			old_population.distances[0]))
+		//fmt.Print("\nIteration: ", i)
+		//fmt.Print("\t Worst individual: ", old_population.distances[population_size-1], "\t Average individual: ", mean, "\t Best individual: ", old_population.distances[0])
+		/*f.WriteString(fmt.Sprintf("%d;%d;%d\n",
+		old_population.distances[population_size-1],
+		mean,
+		old_population.distances[0]))
+		*/
 
 	}
 	best_dist := old_population.distances[0]
@@ -336,7 +337,7 @@ func Genetic_generate_solution(p Problem,
 		}
 	}
 
-	return &best_ind
+	return &best_ind, best_dist
 }
 
 func GA_Islands_generate_solution(p Problem,
@@ -350,7 +351,7 @@ func GA_Islands_generate_solution(p Problem,
 	migration_interval int,
 	id int,
 	migration_start_ratio int,
-) *[]int {
+) (*[]int, int) {
 
 	file_name := "./test_island_output_" + strconv.Itoa(id) + ".txt"
 	f, _ := os.Create(file_name)
@@ -407,22 +408,22 @@ func GA_Islands_generate_solution(p Problem,
 			islands[l].new_population = generation{}
 			islands[l].new_population = empty_generation(p, island_population_size)
 
-			_, _, best := islands[l].old_population.get_results()
+			/*_, _, best := islands[l].old_population.get_results()
 
 			if l < islands_amount-1 {
 				f2.WriteString(fmt.Sprintf("%d;", best))
 			} else {
 				f2.WriteString(fmt.Sprintf("%d", best))
-			}
+			}*/
 
 		}
-		worst, avg, best := islands[0].old_population.get_results()
+		/*worst, avg, best := islands[0].old_population.get_results()
 		f.WriteString(fmt.Sprintf("%d;%d;%d\n", worst, avg, best))
-		f2.WriteString(fmt.Sprintf("\n"))
+		f2.WriteString(fmt.Sprintf("\n"))*/
 
 		// handle migration
 		if i%migration_interval == 0 && i >= iterations/migration_start_ratio {
-			fmt.Println("Migration ", i/migration_interval+1, " / ", iterations/migration_interval)
+			//fmt.Println("Migration ", i/migration_interval+1, " / ", iterations/migration_interval)
 			migrants := make([]generation, islands_amount)
 
 			for l := 0; l < islands_amount; l++ {
@@ -472,7 +473,7 @@ func GA_Islands_generate_solution(p Problem,
 		}
 	}
 
-	return &best_ind
+	return &best_ind, best_dist
 }
 
 func Find(slice []int, val int) (int, bool) {

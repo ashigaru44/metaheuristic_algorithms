@@ -145,7 +145,7 @@ func InitProblem(path string) *Problem {
 	}
 
 	problem.Adj_matrix = *problem.adjacency_matrix()
-	problem.PrintProblem()
+	//problem.PrintProblem()
 	// for i := range problem.adj_matrix {
 	// fmt.Println(problem.adj_matrix[i])
 	// }
