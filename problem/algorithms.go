@@ -316,6 +316,8 @@ func Tabu_search_concurrent(p Problem, initial_method string, terminate_criteria
 	var best_path []int
 	best_distance := math.MaxInt32
 
+	defer timeTrack(time.Now(), "Tabu_search_concurrent")
+
 	wg.Add(num_of_routines)
 
 	switch initial_method {
@@ -364,7 +366,7 @@ func Tabu_search(p Problem,
 	ch_best_dist chan<- int,
 	alg TabuNeigbourAlgorithm) (*[]int, int) {
 
-	defer timeTrack(time.Now(), "Tabu_search")
+	// defer timeTrack(time.Now(), "Tabu_search")
 	defer func() {
 		close(ch_best_dist)
 		close(ch_best_path)
