@@ -20,7 +20,9 @@ func main() {
 	//path, distance = problem.Tabu_search_concurrent(*p1, ":", 200, 0.985, 30, 8, 1)
 
 	_, distance_2OPT := problem.Opt2(*p1, p1.Adj_matrix, path)
-	path = problem.Genetic_generate_solution(*p1, 0.7, 0.2, 1000, 10000, 10, 0.02)
+
+	//path = problem.Genetic_generate_solution(*p1, 0.7, 0.2, 1000, 10000, 10, 0.02)
+	path = problem.GA_Islands_generate_solution(*p1, 0.6, 0.3, 1000, 10000, 7, 10, 0.1, 500)
 	// path, distance = problem.Tabu_search(*p1, path, 1000, 0.985, 30)
 	fmt.Println("distance 2OPT = ", distance_2OPT)
 	fmt.Println("distance = ", p1.EvaluateSolution2(path))

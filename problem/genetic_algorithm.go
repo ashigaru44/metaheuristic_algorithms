@@ -21,6 +21,11 @@ type generation struct {
 	distances   []int
 }
 
+type island struct {
+	old_population generation
+	new_population generation
+}
+
 type ByDistance generation
 
 func (a ByDistance) Len() int           { return len(a.individuals) }
@@ -297,6 +302,110 @@ func Genetic_generate_solution(p Problem,
 		if old_population.distances[i] < best_dist {
 			best_dist = old_population.distances[i]
 			best_ind = old_population.individuals[i]
+		}
+	}
+
+	return &best_ind
+}
+
+func GA_Islands_generate_solution(p Problem,
+	probability_cross float32,
+	probability_mutate float32,
+	population_size int,
+	iterations int,
+	tournament_size int,
+	islands_amount int,
+	migration_rate float32,
+	migration_interval int,
+) *[]int {
+
+	rand.Seed(time.Now().UnixNano())
+
+	// prepare islands populations
+	island_shift := 1
+	island_population_size := population_size / islands_amount
+	migration_size := int(migration_rate * float32(island_population_size))
+	island_shrinked_population_size := island_population_size - migration_size
+	islands := make([]island, islands_amount)
+	for i := 0; i < islands_amount; i++ {
+		islands[i].old_population = generate_random_generation(p, island_population_size)
+		islands[i].new_population = empty_generation(p, island_population_size)
+	}
+
+	for i := 0; i < iterations; i++ {
+		for l := 0; l < islands_amount; l++ {
+			for j := 0; j < island_population_size; j++ {
+				// handle new subpopulation on island
+				parent_1 := *tournament_selection(islands[l].old_population, tournament_size)
+				var child []int
+				if rand.Float32() <= probability_cross {
+					parent_2 := *tournament_selection(islands[l].old_population, tournament_size)
+					child = *ordered_crossover(&parent_1, &parent_2)
+				} else {
+					child = parent_1
+				}
+				if rand.Float32() <= probability_mutate {
+					mutation_swap_linear(&child)
+				}
+
+				islands[l].new_population.individuals[j] = child
+				islands[l].new_population.distances[j] = p.EvaluateSolution2(&child)
+			}
+
+			// clear new_population
+			islands[l].old_population = islands[l].new_population
+			islands[l].new_population = generation{}
+			islands[l].new_population = empty_generation(p, island_population_size)
+
+		}
+
+		// handle migration
+		if i%migration_interval == 0 {
+			fmt.Println("Migration ", i/migration_interval+1, " / ", iterations/migration_interval)
+			migrants := make([]generation, islands_amount)
+
+			for l := 0; l < islands_amount; l++ {
+				sort.Sort(ByDistance(islands[l].old_population))
+
+				// remove worst members from island's population
+				islands[l].old_population.individuals = islands[l].old_population.individuals[:island_shrinked_population_size]
+				islands[l].old_population.distances = islands[l].old_population.distances[:island_shrinked_population_size]
+
+				// add island's best members' copies to ships
+				target_island := (l + island_shift) % islands_amount
+				migrants[target_island] = empty_generation(p, migration_size)
+				migrants[target_island].individuals = islands[l].old_population.individuals[:migration_size]
+				migrants[target_island].distances = islands[l].old_population.distances[:migration_size]
+			}
+
+			for l := 0; l < islands_amount; l++ {
+
+				// simultaneously transfer migrants to destination islands
+				for m := 0; m < migration_size; m++ {
+					islands[l].old_population.individuals = append(islands[l].old_population.individuals, migrants[l].individuals[m])
+					islands[l].old_population.distances = append(islands[l].old_population.distances, migrants[l].distances[m])
+				}
+
+			}
+			// shift destination island to the right by one.
+			island_shift = island_shift + 1
+			// islands are formed as circle, so adjustment is needed as follows:
+			if island_shift%islands_amount == 0 {
+				island_shift = 1
+			}
+		}
+
+	}
+
+	best_dist := islands[0].old_population.distances[0]
+	best_ind := islands[0].old_population.individuals[0]
+	for l := 0; l < islands_amount; l++ {
+		for i := range islands[l].old_population.distances {
+			if islands[l].old_population.distances[i] < best_dist {
+				best_dist = islands[l].old_population.distances[i]
+				best_ind = islands[l].old_population.individuals[i]
+			}
+
 		}
 	}
 
