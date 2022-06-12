@@ -292,21 +292,22 @@ func Genetic_generate_solution(p Problem,
 	for i := 0; i < iterations; i++ {
 		mean := 0
 		for j := 0; j < population_size; j++ {
+			if new_population.distances[j] == 0 {
+				parent_1 := *tournament_selection(old_population, tournament_size)
+				var child []int
+				if rand.Float32() <= probability_cross {
+					parent_2 := *tournament_selection(old_population, tournament_size)
+					child = *ordered_crossover(&parent_1, &parent_2)
+				} else {
+					child = parent_1
+				}
+				if rand.Float32() <= probability_mutate {
+					mutation_invert(&child)
+				}
 
-			parent_1 := *tournament_selection(old_population, tournament_size)
-			var child []int
-			if rand.Float32() <= probability_cross {
-				parent_2 := *tournament_selection(old_population, tournament_size)
-				child = *ordered_crossover(&parent_1, &parent_2)
-			} else {
-				child = parent_1
+				new_population.individuals[j] = child
+				new_population.distances[j] = p.EvaluateSolution2(&child)
 			}
-			if rand.Float32() <= probability_mutate {
-				mutation_invert(&child)
-			}
-
-			new_population.individuals[j] = child
-			new_population.distances[j] = p.EvaluateSolution2(&child)
 			mean += new_population.distances[j]
 		}
 		mean /= population_size

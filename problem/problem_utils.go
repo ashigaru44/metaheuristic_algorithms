@@ -30,6 +30,17 @@ func (p Problem) PrintProblem() {
 	for i, val := range p.nodes {
 		fmt.Printf("%v.\t%v\n", i, val)
 	}
+
+	fmt.Println("_______Adj_matrix_______")
+	for i := 0; i < p.dim; i++ {
+		fmt.Print("  ", i, "\t")
+	}
+	for i := 0; i < p.dim; i++ {
+		fmt.Print("\n", i)
+		for j := 0; j < p.dim; j++ {
+			fmt.Print(" ", p.Adj_matrix[i][j], "\t")
+		}
+	}
 }
 
 func check(e error) {
@@ -38,24 +49,37 @@ func check(e error) {
 	}
 }
 
-func GenerateProblem(size int, min int, max int) *Problem {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+func GenerateProblem(size int, min int, max int, assymetric bool) *Problem {
+	rand.Seed(time.Now().UnixNano())
 	var dim int
 	if min == 0 && max == 0 {
-		dim = r.Int() % 50
+		dim = rand.Int() % 50
 	} else {
-		dim = r.Int()%(max-min) + min
+		dim = rand.Int()%(max-min) + min
 	}
 	nodes := make([][2]int, dim)
 
 	for i := 0; i < dim; i++ {
-		nodes[i][0] = r.Int()%(2*size) - size
-		nodes[i][1] = r.Int()%(2*size) - size
+		nodes[i][0] = rand.Int()%(2*size) - size
+		nodes[i][1] = rand.Int()%(2*size) - size
 	}
 
 	fmt.Println(dim)
 
 	var problem = Problem{name: "generated", dim: dim, nodes: nodes}
+	problem.Adj_matrix = *problem.adjacency_matrix()
+
+	if assymetric {
+		for i := 0; i < dim; i++ {
+			for j := 0; j < dim; j++ {
+				curr_val := problem.Adj_matrix[i][j]
+				max = 3*curr_val + 1
+				min = curr_val
+				curr_val += (rand.Intn(max-min) + min)
+				problem.Adj_matrix[i][j] = curr_val
+			}
+		}
+	}
 	return &problem
 }
 
@@ -120,8 +144,8 @@ func InitProblem(path string) *Problem {
 		}
 	}
 
-	problem.PrintProblem()
 	problem.Adj_matrix = *problem.adjacency_matrix()
+	problem.PrintProblem()
 	// for i := range problem.adj_matrix {
 	// fmt.Println(problem.adj_matrix[i])
 	// }
@@ -182,7 +206,7 @@ func ShowGraph(p *Problem, path *[]int) {
 	saved_problem_path := p.SaveProblemToFile()
 	fmt.Println("Path:", *path)
 	fmt.Println("Distance = ", p.EvaluateSolution2(path))
-	err := exec.Command("python3", "./visualize.py", saved_problem_path).Run()
+	err := exec.Command("python", "./visualize.py", saved_problem_path).Run()
 	if err != nil {
 		panic(err)
 	}

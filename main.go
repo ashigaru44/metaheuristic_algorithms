@@ -2,7 +2,6 @@ package main
 
 import (
 	//"math/rand"
-
 	"fmt"
 	"meta-heur/tsp/problem"
 	//"sort"
@@ -11,18 +10,18 @@ import (
 //var r rand.Rand
 
 func main() {
-	//r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	problem_path := "./input_data/berlin52.tsp"
 	p1 := problem.InitProblem(problem_path)
 	path, _ := problem.NearestNeighbourAllPoints(*p1, p1.Adj_matrix)
 	// path, _ := problem.Random(*p1)
-	//var distance int
-	//path, distance = problem.Tabu_search_concurrent(*p1, ":", 200, 0.985, 30, 8, 1)
+	// var distance int
+	// path, distance = problem.Tabu_search_concurrent(*p1, ":", 200, 0.985, 30, 8, 1)
 
 	_, distance_2OPT := problem.Opt2(*p1, p1.Adj_matrix, path)
 
-	//path = problem.Genetic_generate_solution(*p1, 0.7, 0.2, 1000, 10000, 10, 0.02, 0)
-	path = problem.GA_Islands_generate_solution(*p1, 0.75, 0.5, 1000, 7000, 4, 10, 0.05, 20, 0, 2)
+	path = problem.Genetic_generate_solution(*p1, 0.7, 0.2, 1000, 10000, 10, 0.02, 0)
+	// path = problem.GA_Islands_generate_solution(*p1, 0.75, 0.5, 1000, 7000, 4, 10, 0.05, 20, 0, 2)
 	// path, distance = problem.Tabu_search(*p1, path, 1000, 0.985, 30)
 	fmt.Println("distance 2OPT = ", distance_2OPT)
 	fmt.Println("distance = ", p1.EvaluateSolution2(path))
@@ -42,7 +41,7 @@ func main() {
 	//test_Algorithm(Opt2, ta, 100)
 
 	// p1.PrintProblem()
-	// pr := problem.GenerateProblem(10)
+	// pr := problem.GenerateProblem(50, 1, 20, false)
 	// fmt.Println(saved_problem_path)
 
 	// res := testNearest(p1)
