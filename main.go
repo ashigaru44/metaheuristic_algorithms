@@ -21,7 +21,8 @@ func main() {
 
 	_, distance_2OPT := problem.Opt2(*p1, p1.Adj_matrix, path)
 
-	utils.Test_run_GA()
+	//utils.Test_run_GA()
+	utils.Random_sampling()
 
 	//path = problem.Genetic_generate_solution(*p1, 0.7, 0.2, 1000, 10000, 10, 0.02, 0)
 	// path = problem.GA_Islands_generate_solution(*p1, 0.75, 0.5, 1000, 7000, 4, 10, 0.05, 20, 0, 2)

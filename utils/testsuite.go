@@ -3,11 +3,22 @@ package utils
 import (
 	//"math/rand"
 	"fmt"
+	"math"
+	"math/rand"
 	"meta-heur/tsp/problem"
 	"os"
 )
 
+type params struct {
+	crossover_probability float32
+	mutation_probability  float32
+	population_size       int
+	tournament_size       float32
+	elitisim_size         float32
+}
+
 const TEST_REPEAT = 1
+const SAMPLINGS = 100
 
 func Test_run_GA() {
 	problems := generate_testing_problems()
@@ -22,6 +33,56 @@ func Test_run_GA() {
 	elitism_size_testing(problems, *f)
 	f.Sync()
 	defer f.Close()
+}
+
+func generate_random_params() params {
+	new_params := params{
+		crossover_probability: rand.Float32(),
+		mutation_probability:  rand.Float32(),
+		population_size:       rand.Intn(10000) + 10,
+		tournament_size:       rand.Float32(),
+		elitisim_size:         rand.Float32(),
+	}
+
+	return new_params
+}
+
+func Random_sampling() {
+	problem1_path := "./input_data/berlin52.tsp"
+	p := *problem.InitProblem(problem1_path)
+	f, _ := os.Create("./PARAMS_output.txt")
+	defer f.Close()
+
+	var best_params params
+
+	best_dist := math.MaxInt32
+	distances := make([]int, SAMPLINGS)
+	for i := 0; i < SAMPLINGS; i++ {
+		//f.WriteString(fmt.Sprintf("%s;%f;", MSG, crossing_params[i]))
+		current_params := generate_random_params()
+		fmt.Println(fmt.Sprintf("iteration: %d", i))
+		_, dist := problem.Genetic_generate_solution(p,
+			current_params.crossover_probability,
+			current_params.mutation_probability,
+			current_params.population_size,
+			8000,
+			int(current_params.tournament_size*float32(p.GetDim())),
+			current_params.elitisim_size,
+			i,
+			"ordered",
+			"invert")
+		distances[i] = dist
+		f.WriteString(fmt.Sprintf("%d;", dist))
+		if dist < best_dist {
+			best_dist = dist
+			best_params = current_params
+			fmt.Println(best_dist)
+			fmt.Println(best_params)
+			fmt.Println()
+		}
+	}
+	f.Sync()
+
 }
 
 func generate_testing_problems() [16]problem.Problem {
