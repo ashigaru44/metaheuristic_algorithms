@@ -277,13 +277,15 @@ func Genetic_generate_solution(p Problem,
 	tournament_size int,
 	elitism_size float32,
 	id int,
+	crossing_variant string,
+	mutation_variant string,
 ) (*[]int, int) {
 
-	file_name := "./test_output_" + strconv.Itoa(id) + ".txt"
-	f, _ := os.Create(file_name)
-	f.WriteString(fmt.Sprintf("Worst;Avg;Best\n"))
+	// file_name := "./test_output_" + strconv.Itoa(id) + ".txt"
+	// f, _ := os.Create(file_name)
+	// f.WriteString(fmt.Sprintf("Worst;Avg;Best\n"))
 	//check(err)
-	defer f.Close()
+	// defer f.Close()
 	rand.Seed(time.Now().UnixNano())
 	elite_individuals := int(elitism_size * float32(population_size))
 	old_population := generate_random_generation(p, population_size)
@@ -297,12 +299,22 @@ func Genetic_generate_solution(p Problem,
 				var child []int
 				if rand.Float32() <= probability_cross {
 					parent_2 := *tournament_selection(old_population, tournament_size)
-					child = *ordered_crossover(&parent_1, &parent_2)
+					switch crossing_variant {
+					case "pm":
+						child = *crossover_pm(p, &parent_1, &parent_2)
+					case "ordered":
+						child = *ordered_crossover(&parent_1, &parent_2)
+					}
 				} else {
 					child = parent_1
 				}
 				if rand.Float32() <= probability_mutate {
-					mutation_invert(&child)
+					switch mutation_variant {
+					case "invert":
+						mutation_invert(&child)
+					case "linear":
+						mutation_swap_linear(&child)
+					}
 				}
 
 				new_population.individuals[j] = child
