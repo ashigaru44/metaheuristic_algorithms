@@ -41,8 +41,9 @@ func generate_testing_problems() [16]problem.Problem {
 
 func crossing_testing(p [16]problem.Problem, f os.File) {
 	crossing_params := [5]float32{0.1, 0.25, 0.5, 0.75, 0.9}
-	MSG := "crossing"
+	MSG := "crossing_ordered"
 
+	fmt.Println(MSG + " ENTERED")
 	for i := 0; i < len(crossing_params); i++ {
 		f.WriteString(fmt.Sprintf("%s;%f;", MSG, crossing_params[i]))
 		for m := 0; m < len(p); m++ {
@@ -56,11 +57,14 @@ func crossing_testing(p [16]problem.Problem, f os.File) {
 		}
 		f.WriteString(fmt.Sprintf("\n"))
 	}
+	fmt.Println(MSG + " LEFT")
 }
 
 func mutation_testing(p [16]problem.Problem, f os.File) {
 	mutation_params := [5]float32{0.1, 0.25, 0.5, 0.75, 0.9}
-	MSG := "mutation"
+	MSG := "mutation_inverted"
+
+	fmt.Println(MSG + " ENTERED")
 	for i := 0; i < len(mutation_params); i++ {
 		f.WriteString(fmt.Sprintf("%s;%f;", MSG, mutation_params[i]))
 		for m := 0; m < len(p); m++ {
@@ -74,11 +78,14 @@ func mutation_testing(p [16]problem.Problem, f os.File) {
 		}
 		f.WriteString(fmt.Sprintf("\n"))
 	}
+	fmt.Println(MSG + " LEFT")
 }
 
 func population_size_testing(p [16]problem.Problem, f os.File) {
 	pop_size_params := [3]int{100, 1000, 5000}
 	MSG := "population"
+
+	fmt.Println(MSG + " ENTERED")
 	for i := 0; i < len(pop_size_params); i++ {
 		f.WriteString(fmt.Sprintf("%s;%d;", MSG, pop_size_params[i]))
 		for m := 0; m < len(p); m++ {
@@ -92,11 +99,14 @@ func population_size_testing(p [16]problem.Problem, f os.File) {
 		}
 		f.WriteString(fmt.Sprintf("\n"))
 	}
+	fmt.Println(MSG + " LEFT")
 }
 
 func tournament_size_testing(p [16]problem.Problem, f os.File) {
 	tournament_size_params := [3]float32{0.01, 0.05, 0.2}
 	MSG := "tournament"
+
+	fmt.Println(MSG + " ENTERED")
 	for i := 0; i < len(tournament_size_params); i++ {
 		f.WriteString(fmt.Sprintf("%s;%f;", MSG, tournament_size_params[i]))
 		for m := 0; m < len(p); m++ {
@@ -110,12 +120,14 @@ func tournament_size_testing(p [16]problem.Problem, f os.File) {
 		}
 		f.WriteString(fmt.Sprintf("\n"))
 	}
-
+	fmt.Println(MSG + " LEFT")
 }
 
 func elitism_size_testing(p [16]problem.Problem, f os.File) {
 	elitism_size_params := [3]float32{0.01, 0.05, 0.2}
 	MSG := "elitism"
+
+	fmt.Println(MSG + " ENTERED")
 	for i := 0; i < len(elitism_size_params); i++ {
 		f.WriteString(fmt.Sprintf("%s;%f;", MSG, elitism_size_params[i]))
 		for m := 0; m < len(p); m++ {
@@ -129,4 +141,5 @@ func elitism_size_testing(p [16]problem.Problem, f os.File) {
 		}
 		f.WriteString(fmt.Sprintf("\n"))
 	}
+	fmt.Println(MSG + " LEFT")
 }
