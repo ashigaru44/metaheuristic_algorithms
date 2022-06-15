@@ -122,6 +122,7 @@ func InitProblem(path string) *Problem {
 
 	for scanner.Scan() {
 		text := scanner.Text()
+		text = strings.TrimLeft(text, " ")
 		splitted := strings.Split(text, " ")
 
 		_, err := strconv.Atoi(splitted[0])
@@ -135,7 +136,7 @@ func InitProblem(path string) *Problem {
 				check(err)
 			}
 		} else {
-			splitted := strings.Split(text, " ")
+			splitted := strings.Fields(text)
 			x, err := strconv.ParseFloat(splitted[1], 32)
 			check(err)
 			y, err := strconv.ParseFloat(splitted[2], 32)

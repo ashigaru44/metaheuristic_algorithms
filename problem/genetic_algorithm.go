@@ -281,11 +281,11 @@ func Genetic_generate_solution(p Problem,
 	mutation_variant string,
 ) (*[]int, int) {
 
-	// file_name := "./test_output_" + strconv.Itoa(id) + ".txt"
-	// f, _ := os.Create(file_name)
-	// f.WriteString(fmt.Sprintf("Worst;Avg;Best\n"))
-	//check(err)
-	// defer f.Close()
+	file_name := "./test_output_" + strconv.Itoa(id) + ".txt"
+	f, _ := os.Create(file_name)
+	f.WriteString(fmt.Sprintf("Best\n"))
+	// check(err)
+	defer f.Close()
 	rand.Seed(time.Now().UnixNano())
 	elite_individuals := int(elitism_size * float32(population_size))
 	old_population := generate_random_generation(p, population_size)
@@ -331,13 +331,10 @@ func Genetic_generate_solution(p Problem,
 		new_population = generation{}
 		new_population = empty_generation(p, population_size)
 		new_population = old_population.elitism(elite_individuals, new_population)
-		//fmt.Print("\nIteration: ", i)
-		//fmt.Print("\t Worst individual: ", old_population.distances[population_size-1], "\t Average individual: ", mean, "\t Best individual: ", old_population.distances[0])
-		/*f.WriteString(fmt.Sprintf("%d;%d;%d\n",
-		old_population.distances[population_size-1],
-		mean,
-		old_population.distances[0]))
-		*/
+		fmt.Print("\nIteration: ", i)
+		fmt.Print("\t Worst individual: ", old_population.distances[population_size-1], "\t Average individual: ", mean, "\t Best individual: ", old_population.distances[0])
+		f.WriteString(fmt.Sprintf("%d\n",
+			old_population.distances[0]))
 
 	}
 	best_dist := old_population.distances[0]

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	//"math/rand"
 	"fmt"
 	"math"
 	"math/rand"
@@ -33,6 +32,16 @@ func Test_run_GA() {
 	elitism_size_testing(problems, *f)
 	f.Sync()
 	defer f.Close()
+}
+
+func Test_run_GA_2() {
+	problem1 := *problem.InitProblem("./input_data/berlin52.tsp")
+	crossing_params := [5]float32{0.75, 0.1, 0.9, 0.75, 0.75}
+	mutation_params := [5]float32{0.25, 0.25, 0.25, 0.1, 0.9}
+
+	for i := 0; i < len(crossing_params); i++ {
+		problem.Genetic_generate_solution(problem1, crossing_params[i], mutation_params[i], 1000, 10000, int(0.015*float32(problem1.GetDim())), 0.02, i, "ordered", "invert")
+	}
 }
 
 func generate_random_params() params {
